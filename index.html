@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>جدول دروسي الأسبوعي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rakkas&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#faf4e6;
+    --paper:#fffdf8;
+    --line:#e7dcc4;
+    --ink:#2f2a3d;
+    --muted:#8b8271;
+    --accent:#e4572e;
+    --accent-2:#264653;
+    --radius:14px;
+    --shadow:0 16px 34px -18px rgba(47,42,61,.35);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--bg), var(--bg)),
+      repeating-linear-gradient(transparent, transparent 37px, var(--line) 38px);
+    background-attachment:fixed;
+    color:var(--ink);
+    font-family:'Tajawal', sans-serif;
+    line-height:1.7;
+    min-height:100vh;
+  }
+  h1,h2,.display{ font-family:'Rakkas', serif; margin:0; }
+  button{ font-family:inherit; cursor:pointer; }
+
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 22px; }
+
+  /* header */
+  header{
+    padding:36px 0 26px;
+    display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap;
+  }
+  header .title-block h1{
+    font-size:clamp(1.9rem, 4vw, 2.6rem);
+    color:var(--accent-2);
+  }
+  header .title-block p{
+    color:var(--muted); margin-top:6px; font-size:.95rem;
+  }
+  .add-btn{
+    background:var(--accent); color:#fff; border:none;
+    padding:14px 24px; border-radius:999px; font-weight:800; font-size:.95rem;
+    box-shadow:var(--shadow);
+    display:inline-flex; align-items:center; gap:8px;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .add-btn:hover{ background:#cf4a24; transform:translateY(-2px); }
+  .add-btn .plus{ font-size:1.2rem; line-height:0; }
+
+  /* summary strip */
+  .summary{
+    display:flex; gap:22px; flex-wrap:wrap;
+    padding:14px 20px; margin-bottom:26px;
+    background:var(--paper); border:1px solid var(--line); border-radius:12px;
+  }
+  .summary .item{ font-size:.85rem; color:var(--muted); }
+  .summary .item b{ color:var(--accent-2); font-family:'Rakkas',serif; font-size:1.05rem; }
+
+  /* week board */
+  .board{
+    display:grid;
+    grid-template-columns:repeat(7, 1fr);
+    gap:16px;
+    padding-bottom:60px;
+  }
+  .day-col{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:14px 12px 18px;
+    min-height:220px;
+    display:flex; flex-direction:column;
+    box-shadow:var(--shadow);
+  }
+  .day-col h2{
+    font-size:1.15rem;
+    text-align:center;
+    color:var(--accent-2);
+    padding-bottom:10px;
+    margin-bottom:12px;
+    border-bottom:2px dashed var(--line);
+  }
+  .empty-day{
+    margin-top:auto; margin-bottom:auto;
+    text-align:center; color:#c4bca8; font-size:.8rem;
+  }
+
+  .lesson-card{
+    position:relative;
+    background:#fff;
+    border-radius:10px;
+    padding:14px 12px 12px;
+    margin-bottom:14px;
+    box-shadow:0 8px 16px -10px rgba(0,0,0,.25);
+    border:1px solid var(--line);
+  }
+  .lesson-card:nth-child(odd){ transform:rotate(-1deg); }
+  .lesson-card:nth-child(even){ transform:rotate(1deg); }
+  .lesson-card .tape{
+    position:absolute; top:-9px; right:14px;
+    width:52px; height:16px; border-radius:2px;
+    opacity:.85;
+    transform:rotate(-3deg);
+  }
+  .lesson-card .subject{
+    font-weight:800; font-size:.95rem; margin-top:4px;
+  }
+  .lesson-card .time{
+    font-size:.8rem; color:var(--muted); margin-top:4px;
+    font-family:'Tajawal',sans-serif; font-weight:700;
+  }
+  .lesson-card .place{
+    font-size:.76rem; color:var(--muted); margin-top:2px;
+  }
+  .lesson-card .notes{
+    font-size:.74rem; color:#a39c8a; margin-top:6px; font-style:normal;
+  }
+  .lesson-card .card-actions{
+    display:flex; gap:8px; margin-top:10px;
+  }
+  .lesson-card .card-actions button{
+    border:none; background:none; font-size:.72rem; font-weight:700;
+    color:var(--muted); padding:2px 4px;
+  }
+  .lesson-card .card-actions button:hover{ color:var(--accent); }
+  .lesson-card .card-actions .del:hover{ color:#c0392b; }
+
+  @media (max-width:1000px){
+    .board{ grid-template-columns:repeat(3, 1fr); }
+  }
+  @media (max-width:640px){
+    .board{ grid-template-columns:repeat(2, 1fr); }
+    header{ flex-direction:column; align-items:flex-start; }
+  }
+  @media (max-width:420px){
+    .board{ grid-template-columns:1fr; }
+  }
+
+  /* modal */
+  .overlay{
+    position:fixed; inset:0; background:rgba(47,42,61,.55);
+    display:none; align-items:center; justify-content:center; padding:20px; z-index:100;
+  }
+  .overlay.show{ display:flex; }
+  .modal{
+    background:var(--paper); width:100%; max-width:440px;
+    border-radius:16px; padding:26px; position:relative;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,.5);
+  }
+  .modal h2{ font-size:1.3rem; color:var(--accent-2); }
+  .modal .close-x{
+    position:absolute; top:16px; left:16px; background:none; border:none;
+    font-size:1.15rem; color:var(--muted);
+  }
+  .modal label{ display:block; font-size:.82rem; font-weight:700; margin:14px 0 6px; color:var(--ink); }
+  .modal input, .modal select, .modal textarea{
+    width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line);
+    font-family:inherit; font-size:.9rem; background:#fff; color:var(--ink);
+  }
+  .modal textarea{ resize:vertical; min-height:52px; }
+  .time-row{ display:flex; gap:10px; }
+  .time-row > div{ flex:1; }
+
+  .color-row{ display:flex; gap:8px; margin-top:6px; flex-wrap:wrap; }
+  .color-dot{
+    width:26px; height:26px; border-radius:50%; border:2px solid transparent; cursor:pointer;
+  }
+  .color-dot.selected{ border-color:var(--ink); }
+
+  .modal-actions{ display:flex; gap:10px; margin-top:22px; }
+  .modal-actions button{ flex:1; padding:12px; border-radius:9px; font-weight:800; border:1px solid transparent; }
+  .btn-save{ background:var(--accent); color:#fff; }
+  .btn-save:hover{ background:#cf4a24; }
+  .btn-cancel{ background:transparent; border-color:var(--line); color:var(--muted); }
+
+  .toast{
+    position:fixed; bottom:24px; right:50%; transform:translateX(50%) translateY(16px);
+    background:var(--accent-2); color:#fff; font-weight:700; font-size:.85rem;
+    padding:12px 20px; border-radius:9px; opacity:0; pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease; z-index:200;
+  }
+  .toast.show{ opacity:1; transform:translateX(50%) translateY(0); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition-duration:.001ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="title-block">
+      <h1>جدول دروسي الأسبوعي</h1>
+      <p>احفظ مواعيد دروسك الخصوصية وشوفها مرتبة على أيام الأسبوع.</p>
+    </div>
+    <button class="add-btn" id="openAdd"><span class="plus">＋</span> إضافة درس</button>
+  </header>
+
+  <div class="summary" id="summary"></div>
+
+  <div class="board" id="board"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <button class="close-x" id="closeModal">✕</button>
+    <h2 id="modalTitle">إضافة درس</h2>
+
+    <form id="lessonForm">
+      <label for="subject">اسم المادة</label>
+      <input type="text" id="subject" required placeholder="مثال: رياضيات">
+
+      <label for="day">اليوم</label>
+      <select id="day" required></select>
+
+      <label>الميعاد</label>
+      <div class="time-row">
+        <div>
+          <label for="start" style="margin-top:0;">من</label>
+          <input type="time" id="start" required>
+        </div>
+        <div>
+          <label for="end" style="margin-top:0;">إلى</label>
+          <input type="time" id="end">
+        </div>
+      </div>
+
+      <label for="place">المكان / أونلاين (اختياري)</label>
+      <input type="text" id="place" placeholder="مثال: سنتر النور — أونلاين زووم">
+
+      <label for="notes">ملاحظات (اختياري)</label>
+      <textarea id="notes" placeholder="أي تفاصيل تحب تفتكرها"></textarea>
+
+      <label>اللون</label>
+      <div class="color-row" id="colorRow"></div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" id="cancelModal">إلغاء</button>
+        <button type="submit" class="btn-save">حفظ</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  const DAYS = [
+    { id:'sat', label:'السبت' },
+    { id:'sun', label:'الأحد' },
+    { id:'mon', label:'الاثنين' },
+    { id:'tue', label:'الثلاثاء' },
+    { id:'wed', label:'الأربعاء' },
+    { id:'thu', label:'الخميس' },
+    { id:'fri', label:'الجمعة' },
+  ];
+
+  const COLORS = ['#F4A261','#2A9D8F','#E9C46A','#457B9D','#E76F91','#9B7EDE','#6A994E','#8D99AE'];
+
+  const STORAGE_KEY = 'lessons';
+
+  const board = document.getElementById('board');
+  const summary = document.getElementById('summary');
+  const overlay = document.getElementById('overlay');
+  const form = document.getElementById('lessonForm');
+  const daySelect = document.getElementById('day');
+  const colorRow = document.getElementById('colorRow');
+  const toastEl = document.getElementById('toast');
+  const modalTitle = document.getElementById('modalTitle');
+
+  let editingId = null;
+  let selectedColor = COLORS[0];
+  let lessonsCache = [];        // in-memory copy, always kept in sync with storage
+  let storageAvailable = true;  // becomes false if window.storage is missing/fails
+
+  // default schedule shown the first time the site is opened
+  const DEFAULT_LESSONS = [
+    { id:'d1', subject:'أحياء',        day:'sat', start:'09:00', end:'', place:'', notes:'', color:COLORS[0] },
+    { id:'d2', subject:'سكشن فيزياء',  day:'sat', start:'12:00', end:'', place:'', notes:'', color:COLORS[3] },
+    { id:'d3', subject:'عربي',         day:'sun', start:'13:00', end:'', place:'', notes:'', color:COLORS[2] },
+    { id:'d4', subject:'English',      day:'mon', start:'10:00', end:'', place:'', notes:'', color:COLORS[1] },
+    { id:'d5', subject:'فيزياء',       day:'tue', start:'10:00', end:'', place:'', notes:'', color:COLORS[3] },
+    { id:'d6', subject:'كيمياء',       day:'wed', start:'08:30', end:'', place:'', notes:'', color:COLORS[4] },
+  ];
+
+  // Loads lessons once on startup: tries persistent storage first,
+  // falls back to the in-memory default list if storage isn't available.
+  async function initLessons(){
+    try{
+      if(!window.storage) throw new Error('no storage api');
+      const result = await window.storage.get(STORAGE_KEY, false);
+      if(result && result.value){
+        lessonsCache = JSON.parse(result.value);
+      } else {
+        // first visit: seed with the default schedule
+        lessonsCache = DEFAULT_LESSONS;
+        await window.storage.set(STORAGE_KEY, JSON.stringify(lessonsCache), false);
+      }
+    } catch(e){
+      // storage not available in this environment (e.g. blocked preview) —
+      // keep working with the default list in memory for this session only
+      storageAvailable = false;
+      lessonsCache = DEFAULT_LESSONS;
+      console.error('Storage unavailable, using in-memory data:', e);
+    }
+  }
+
+  // Persists the current lessonsCache. Always updates the in-memory
+  // cache first so the UI stays correct even if the storage write fails.
+  async function saveLessons(list){
+    lessonsCache = list;
+    if(!storageAvailable) return;
+    try{
+      await window.storage.set(STORAGE_KEY, JSON.stringify(list), false);
+    } catch(e){
+      storageAvailable = false;
+      console.error('Failed to save, continuing in-memory only:', e);
+      showToast('تنبيه: التخزين الدائم غير متاح، التعديلات هتفضل خلال الجلسة الحالية بس');
+    }
+  }
+
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=> toastEl.classList.remove('show'), 2600);
+  }
+
+  function fmtTime(t){
+    if(!t) return '';
+    const [h,m] = t.split(':').map(Number);
+    const period = h >= 12 ? 'م' : 'ص';
+    const h12 = ((h % 12) || 12);
+    return `${h12}:${String(m).padStart(2,'0')} ${period}`;
+  }
+
+  // populate day select once
+  DAYS.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.id; opt.textContent = d.label;
+    daySelect.appendChild(opt);
+  });
+
+  // populate color swatches once
+  COLORS.forEach(c => {
+    const dot = document.createElement('div');
+    dot.className = 'color-dot';
+    dot.style.background = c;
+    dot.dataset.color = c;
+    dot.addEventListener('click', () => {
+      selectedColor = c;
+      [...colorRow.children].forEach(el => el.classList.remove('selected'));
+      dot.classList.add('selected');
+    });
+    colorRow.appendChild(dot);
+  });
+
+  function render(){
+    const lessons = lessonsCache;
+    board.innerHTML = '';
+
+    DAYS.forEach((day, idx) => {
+      const col = document.createElement('div');
+      col.className = 'day-col';
+
+      const h2 = document.createElement('h2');
+      h2.textContent = day.label;
+      col.appendChild(h2);
+
+      const dayLessons = lessons
+        .filter(l => l.day === day.id)
+        .sort((a,b) => a.start.localeCompare(b.start));
+
+      if(dayLessons.length === 0){
+        const p = document.createElement('p');
+        p.className = 'empty-day';
+        p.textContent = 'لا يوجد دروس بعد';
+        col.appendChild(p);
+      } else {
+        dayLessons.forEach(l => col.appendChild(buildCard(l)));
+      }
+
+      board.appendChild(col);
+    });
+
+    const total = lessons.length;
+    summary.innerHTML = `
+      <div class="item">إجمالي الدروس هذا الأسبوع: <b>${total}</b></div>
+    `;
+  }
+
+  function buildCard(l){
+    const card = document.createElement('div');
+    card.className = 'lesson-card';
+
+    const tape = document.createElement('div');
+    tape.className = 'tape';
+    tape.style.background = l.color || COLORS[0];
+    card.appendChild(tape);
+
+    const subject = document.createElement('div');
+    subject.className = 'subject';
+    subject.textContent = l.subject;
+    card.appendChild(subject);
+
+    const time = document.createElement('div');
+    time.className = 'time';
+    time.textContent = l.end ? `${fmtTime(l.start)} – ${fmtTime(l.end)}` : fmtTime(l.start);
+    card.appendChild(time);
+
+    if(l.place){
+      const place = document.createElement('div');
+      place.className = 'place';
+      place.textContent = l.place;
+      card.appendChild(place);
+    }
+    if(l.notes){
+      const notes = document.createElement('div');
+      notes.className = 'notes';
+      notes.textContent = l.notes;
+      card.appendChild(notes);
+    }
+
+    const actions = document.createElement('div');
+    actions.className = 'card-actions';
+    actions.innerHTML = `<button type="button" class="edit">تعديل</button><button type="button" class="del">حذف</button>`;
+    actions.querySelector('.edit').addEventListener('click', () => openEdit(l));
+    actions.querySelector('.del').addEventListener('click', () => deleteLesson(l.id));
+    card.appendChild(actions);
+
+    return card;
+  }
+
+  function openAdd(){
+    editingId = null;
+    modalTitle.textContent = 'إضافة درس';
+    form.reset();
+    selectedColor = COLORS[0];
+    [...colorRow.children].forEach((el,i) => el.classList.toggle('selected', i===0));
+    overlay.classList.add('show');
+    document.getElementById('subject').focus();
+  }
+
+  function openEdit(l){
+    editingId = l.id;
+    modalTitle.textContent = 'تعديل الدرس';
+    document.getElementById('subject').value = l.subject;
+    daySelect.value = l.day;
+    document.getElementById('start').value = l.start;
+    document.getElementById('end').value = l.end || '';
+    document.getElementById('place').value = l.place || '';
+    document.getElementById('notes').value = l.notes || '';
+    selectedColor = l.color || COLORS[0];
+    [...colorRow.children].forEach(el => el.classList.toggle('selected', el.dataset.color === selectedColor));
+    overlay.classList.add('show');
+    document.getElementById('subject').focus();
+  }
+
+  function closeModal(){
+    overlay.classList.remove('show');
+    editingId = null;
+  }
+
+  async function deleteLesson(id){
+    if(!confirm('تحذف الدرس ده من جدولك؟')) return;
+    const lessons = lessonsCache.filter(l => l.id !== id);
+    await saveLessons(lessons);
+    render();
+    showToast('تم الحذف');
+  }
+
+  document.getElementById('openAdd').addEventListener('click', openAdd);
+  document.getElementById('closeModal').addEventListener('click', closeModal);
+  document.getElementById('cancelModal').addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e) => { if(e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    const subject = document.getElementById('subject').value.trim();
+    const day = daySelect.value;
+    const start = document.getElementById('start').value;
+    const end = document.getElementById('end').value;
+    const place = document.getElementById('place').value.trim();
+    const notes = document.getElementById('notes').value.trim();
+
+    if(!subject || !day || !start) return;
+
+    const submitBtn = form.querySelector('.btn-save');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'جاري الحفظ...';
+
+    const lessons = [...lessonsCache];
+
+    if(editingId){
+      const idx = lessons.findIndex(l => l.id === editingId);
+      if(idx > -1){
+        lessons[idx] = { ...lessons[idx], subject, day, start, end, place, notes, color:selectedColor };
+      }
+    } else {
+      lessons.push({
+        id: 'l_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+        subject, day, start, end, place, notes, color:selectedColor
+      });
+    }
+
+    await saveLessons(lessons);
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'حفظ';
+
+    closeModal();
+    render();
+    showToast(editingId ? 'تم التعديل' : 'تم إضافة الدرس');
+  });
+
+  (async function start(){
+    board.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#8b8271;">جاري تحميل جدولك...</p>';
+    await initLessons();
+    render();
+  })();
+})();
+</script>
+
+</body>
+</html>
