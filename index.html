@@ -297,21 +297,21 @@
     { id:'d6', subject:'كيمياء',       day:'wed', start:'08:30', end:'', place:'', notes:'', color:COLORS[4] },
   ];
 
-  // Loads lessons once on startup: tries persistent storage first,
+  // Loads lessons once on startup: tries localStorage first,
   // falls back to the in-memory default list if storage isn't available.
   async function initLessons(){
     try{
-      if(!window.storage) throw new Error('no storage api');
-      const result = await window.storage.get(STORAGE_KEY, false);
-      if(result && result.value){
-        lessonsCache = JSON.parse(result.value);
+      if(!window.localStorage) throw new Error('no localStorage api');
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        lessonsCache = JSON.parse(raw);
       } else {
         // first visit: seed with the default schedule
         lessonsCache = DEFAULT_LESSONS;
-        await window.storage.set(STORAGE_KEY, JSON.stringify(lessonsCache), false);
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(lessonsCache));
       }
     } catch(e){
-      // storage not available in this environment (e.g. blocked preview) —
+      // storage not available in this environment —
       // keep working with the default list in memory for this session only
       storageAvailable = false;
       lessonsCache = DEFAULT_LESSONS;
@@ -325,7 +325,7 @@
     lessonsCache = list;
     if(!storageAvailable) return;
     try{
-      await window.storage.set(STORAGE_KEY, JSON.stringify(list), false);
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
     } catch(e){
       storageAvailable = false;
       console.error('Failed to save, continuing in-memory only:', e);
